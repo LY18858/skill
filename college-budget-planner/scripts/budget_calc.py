@@ -30,7 +30,7 @@ LABELS = {"meal": "三餐伙食", "daily": "日常零碎", "fun": "娱乐社交"
 
 def round10(x):
     """四舍五入到 10 元，避开 Python 银行家舍入。"""
-    return int(x / 10.0 + 0.5) * 10
+    return int(x / 10.0 + 0.5 + 1e-9) * 10
 
 
 def _move_to_emg(parts, emg, target):
@@ -83,11 +83,11 @@ def allocate(living, fixed_extra, big, month, days, dorm_on=True):
             # 下限保护：三餐先补到下限，余下按四块权重归一化再分
             meal = meal_floor
             rest = remaining - meal
-            weight = RATIO["daily"] + RATIO["fun"] + RATIO["save"] + RATIO["emg"]
+            # 用整数权重，避免 0.10+0.18+0.12+0.08 = 0.48000000000000004 的浮点累加误差
             parts = {
-                "daily": round10(rest * RATIO["daily"] / weight),
-                "fun": round10(rest * RATIO["fun"] / weight),
-                "save": round10(rest * RATIO["save"] / weight),
+                "daily": round10(rest * 10 / 48),
+                "fun": round10(rest * 18 / 48),
+                "save": round10(rest * 12 / 48),
             }
             emg = rest - parts["daily"] - parts["fun"] - parts["save"]
             emg_min = round10(remaining * 0.06)

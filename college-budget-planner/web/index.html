@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>生活费规划助手 · 月度预算</title>
+<style>
+  :root{
+    --bg:#f4f6f2; --card:#ffffff; --ink:#151b18; --muted:#68736d;
+    --line:#e3e7e1; --line-soft:#eef1ec;
+    --accent:#0d7a70; --accent-2:#13a08f; --accent-soft:#e7f4f1;
+    --warm:#b45309; --warm-soft:#fdf3e3;
+    --radius:16px;
+    --shadow:0 1px 2px rgba(20,40,30,.04),0 8px 24px rgba(20,40,30,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased;
+    padding:0 20px 64px;
+  }
+  .page{max-width:1100px;margin:0 auto}
+  /* ---------- hero ---------- */
+  .hero{padding:56px 0 32px;position:relative}
+  .hero::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2),#7fd4c6);
+    border-radius:0 0 3px 3px;
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;letter-spacing:.08em;color:var(--accent);
+    background:var(--accent-soft);padding:5px 12px;border-radius:100px;
+    font-weight:600;margin-bottom:16px;
+  }
+  .badge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent-2)}
+  h1{font-size:clamp(26px,4vw,38px);line-height:1.25;letter-spacing:-.02em;font-weight:700}
+  .hero p{color:var(--muted);margin-top:10px;font-size:15px;max-width:560px}
+  /* ---------- layout ---------- */
+  .layout{display:grid;grid-template-columns:370px 1fr;gap:22px;align-items:start;margin-top:8px}
+  @media (max-width:920px){.layout{grid-template-columns:1fr}}
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:24px;box-shadow:var(--shadow);
+  }
+  @media (min-width:921px){
+    .panel{position:sticky;top:20px}
+  }
+  .panel h2{font-size:15px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+  .panel h2 span{font-size:11px;font-weight:500;color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:6px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:500}
+  input,select{
+    width:100%;padding:10px 12px;font-size:15px;font-family:inherit;color:var(--ink);
+    background:#fbfcfa;border:1px solid var(--line);border-radius:10px;
+    transition:border-color .16s,box-shadow .16s,background .16s;
+  }
+  input:focus,select:focus{
+    outline:none;border-color:var(--accent);background:#fff;
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hint-line{
+    font-size:12.5px;color:var(--muted);background:var(--bg);border-radius:10px;
+    padding:10px 12px;margin:-4px 0 14px;line-height:1.55;
+  }
+  .switch{display:flex;align-items:center;gap:9px;font-size:13px;color:#3d4742;cursor:pointer;user-select:none}
+  .switch input{width:auto;margin:0;accent-color:var(--accent)}
+  .divider{height:1px;background:var(--line-soft);margin:18px 0}
+  .btn{
+    width:100%;padding:13px;font-size:15px;font-weight:600;font-family:inherit;
+    color:#fff;background:var(--accent);border:none;border-radius:12px;cursor:pointer;
+    transition:transform .16s,filter .16s,box-shadow .16s;
+    box-shadow:0 4px 14px rgba(13,122,112,.22);
+  }
+  .btn:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 6px 18px rgba(13,122,112,.28)}
+  .btn:active{transform:translateY(0)}
+  .foot-note{font-size:11.5px;color:#9aa49e;text-align:center;margin-top:12px;line-height:1.6}
+  /* ---------- result ---------- */
+  .empty{
+    border:1.5px dashed var(--line);border-radius:var(--radius);
+    padding:64px 24px;text-align:center;color:#a3ada7;font-size:14px;background:transparent;
+  }
+  .conclusion{
+    background:linear-gradient(135deg,#0d7a70 0%,#0a655e 55%,#0e857a 100%);
+    color:#fff;border-radius:var(--radius);padding:22px 24px;margin-bottom:16px;
+    display:flex;gap:16px;align-items:flex-start;justify-content:space-between;
+    box-shadow:0 8px 26px rgba(13,122,112,.22);
+  }
+  .conclusion .txt{font-size:16px;line-height:1.6;font-weight:500}
+  .conclusion .k{display:block;font-size:11px;letter-spacing:.1em;opacity:.72;margin-bottom:6px;font-weight:400}
+  .copy-btn{
+    flex:none;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.28);
+    font-size:12px;padding:7px 13px;border-radius:9px;cursor:pointer;font-family:inherit;
+    transition:background .16s;white-space:nowrap;
+  }
+  .copy-btn:hover{background:rgba(255,255,255,.26)}
+  .acts{display:flex;gap:8px;flex:none}
+  .tail-note{margin-top:2px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 24px;margin-bottom:14px;box-shadow:var(--shadow);
+  }
+  .card h3{font-size:15.5px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .num{
+    width:24px;height:24px;flex:none;border-radius:8px;background:var(--accent-soft);color:var(--accent);
+    font-size:12.5px;font-weight:700;display:grid;place-items:center;
+  }
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+  @media (max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--bg);border-radius:11px;padding:11px 12px}
+  .kpi .l{font-size:11.5px;color:var(--muted);margin-bottom:3px}
+  .kpi .v{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .kpi.hero-kpi{background:var(--accent-soft)}
+  .kpi.hero-kpi .v{color:var(--accent)}
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{
+    text-align:left;font-size:11.5px;font-weight:500;color:var(--muted);
+    padding:8px 10px;border-bottom:1px solid var(--line);background:#fafbf9;
+    white-space:nowrap;
+  }
+  td{padding:9px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  .r{text-align:right;font-variant-numeric:tabular-nums}
+  @media (max-width:640px){
+    table{font-size:13px}
+    th,td{padding:8px 6px}
+  }
+  tbody tr:hover td{background:#fcfdfb}
+  tr.sum td{font-weight:600;background:#fafbf9;border-top:1.5px solid var(--line);border-bottom:none}
+  tr.big-row td{background:var(--warm-soft)}
+  tr.big-row:hover td{background:#fcebcf}
+  td .sub{display:block;font-size:11.5px;color:#9aa49e;margin-top:2px}
+  /* plans */
+  .plan{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;background:#fcfdfb}
+  .plan .head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .plan .name{font-weight:600;font-size:14px}
+  .plan .tag{font-size:11px;padding:3px 9px;border-radius:100px;background:var(--accent-soft);color:var(--accent);font-weight:600;white-space:nowrap}
+  .plan .tag.alt{background:var(--bg);color:var(--muted)}
+  .plan .body{font-size:13px;color:#3d4742;line-height:1.6}
+  .plan .cost{font-size:12.5px;color:var(--muted);margin-top:5px}
+  .plan .nums{font-size:12.5px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+  /* lists */
+  ul.tips{list-style:none}
+  ul.tips li{
+    position:relative;padding:9px 0 9px 24px;font-size:13.5px;border-bottom:1px dashed var(--line-soft);
+  }
+  ul.tips li:last-child{border-bottom:none}
+  ul.tips li::before{
+    content:"";position:absolute;left:5px;top:17px;width:7px;height:7px;
+    border-radius:2px;background:var(--accent-2);transform:rotate(45deg);
+  }
+  ul.tips li b{color:var(--ink);font-weight:600}
+  ul.warns li::before{background:var(--warm);border-radius:50%;transform:none}
+  .warn-box{background:#fffdfa;border:1px solid #f4e3cc;border-radius:12px;padding:4px 16px}
+  .note{
+    font-size:12px;color:var(--muted);background:var(--bg);border-radius:10px;
+    padding:10px 13px;margin-top:12px;line-height:1.6;
+  }
+  .note.warn-note{background:var(--warm-soft);color:#8a4a0a}
+  footer{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:#9aa49e;line-height:1.8}
+  footer b{color:var(--muted);font-weight:600}
+  /* print */
+  @media print{
+    body{background:#fff;padding:0}
+    .panel,.btn,.copy-btn,.hero p{display:none}
+    .layout{grid-template-columns:1fr}
+    .conclusion{background:#0d7a70 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .card{box-shadow:none;break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hero">
+    <div class="badge">校园预算工具</div>
+    <h1>这个月的生活费，怎么花才够</h1>
+    <p>输入生活费和大额支出，30 秒得到一份对得上账的分配方案。吃饭优先，大额超了会给取舍方案。</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- ========== 输入 ========== -->
+    <aside class="panel">
+      <h2>填写你的情况 <span>单位：元</span></h2>
+
+      <div class="field">
+        <label for="living">每月生活费</label>
+        <input id="living" type="number" min="1" step="10" value="1500">
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="month">月份</label>
+          <select id="month"></select>
+        </div>
+        <div class="field">
+          <label for="days">在校天数</label>
+          <input id="days" type="number" min="20" max="31" step="1" value="28">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>其他固定开销（没有就填 0）</label>
+        <div class="grid2" style="margin-bottom:10px">
+          <input id="phone" type="number" min="0" step="5" value="0" placeholder="话费">
+          <input id="traffic" type="number" min="0" step="5" value="0" placeholder="交通">
+        </div>
+        <div class="grid2">
+          <input id="net" type="number" min="0" step="5" value="0" placeholder="校园网">
+          <input id="sub" type="number" min="0" step="5" value="0" placeholder="订阅会员">
+        </div>
+      </div>
+
+      <div class="hint-line" id="dormHint">宿舍杂费：按月份自动计算</div>
+
+      <label class="switch" for="dormOn">
+        <input id="dormOn" type="checkbox" checked>
+        宿舍水电（洗澡/饮水/洗衣/电费）由我承担
+      </label>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>本月大额支出（没有就留空）</label>
+        <div class="grid2">
+          <input id="bigName" type="text" value="手表" placeholder="名称">
+          <input id="big" type="number" min="0" step="10" value="200" placeholder="金额">
+        </div>
+      </div>
+
+      <button class="btn" id="go">生成方案</button>
+      <p class="foot-note">金额四舍五入到 10 元，五项之和与生活费必须相等</p>
+    </aside>
+
+    <!-- ========== 输出 ========== -->
+    <main id="result" aria-live="polite">
+      <div class="empty">填写左侧信息，点「生成方案」</div>
+    </main>
+
+  </div>
+
+  <footer>
+    <b>规则说明</b>：三餐 52% / 日常零碎 10% / 娱乐社交 18% / 储蓄 12% / 应急备用金 8%，
+    三餐不低于每天 30 元的下限，应急金由尾差兜底并校验在 6%–10% 之间。<br>
+    物价参考长沙高校常见水平，宿舍杂费按空调季（6–9、12–2 月）与过渡季自动切换。<br>
+    本工具只做月度预算规划，不提供记账、借贷或理财产品建议。
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =========================================================
+     计算内核：与 scripts/budget_calc.py 逐行对应
+     ========================================================= */
+  var SEASON = {1:"peak",2:"peak",3:"off",4:"off",5:"off",
+                6:"peak",7:"peak",8:"peak",9:"peak",10:"off",11:"off",12:"peak"};
+  var SEASON_NAME = {peak:"空调季", off:"过渡季"};
+  var DORM_FEE = {peak:160, off:120};
+  var DORM_DETAIL = {
+    off:  [["洗澡热水",40],["饮用水",25],["洗衣",25],["电费",30]],
+    peak: [["洗澡热水",45],["饮用水",25],["洗衣",30],["电费",60]]
+  };
+  var MEAL_PER_DAY = 30;
+  var LABEL = {meal:"三餐伙食", daily:"日常零碎", fun:"娱乐社交", save:"储蓄", emg:"应急备用金"};
+
+  function round10(x){ return Math.floor(x/10 + 0.5 + 1e-9) * 10; }
+
+  function moveToEmg(parts, emg, target){
+    var need = target - emg;
+    ["fun","daily","save"].forEach(function(k){
+      if (need <= 0) return;
+      var take = Math.min(need, parts[k]);
+      parts[k] -= take; need -= take; emg += take;
+    });
+    return {parts:parts, emg:emg, left:need};
+  }
+
+  function allocate(living, fixedExtra, big, month, days, dormOn){
+    var season = SEASON[month];
+    var dorm = dormOn ? DORM_FEE[season] : 0;
+    var fixed = fixedExtra + dorm;
+    var R = living - fixed - big;
+    var floor = days * MEAL_PER_DAY;
+    var warnings = [], triggers = [];
+    var alloc = {meal:0, daily:0, fun:0, save:0, emg:0};
+    var mode;
+
+    if (R <= 0){
+      mode = "deficit";
+      warnings.push("扣除固定开销与大额支出后已无余额，本月方案不可行，须调整大额支出");
+    } else if (R < floor){
+      mode = "meal_deficit";
+      alloc.meal = R;
+      warnings.push("可分配 " + R + " 元低于三餐下限 " + floor + " 元，缺口 " + (floor - R) +
+                    " 元；严禁借贷填补，建议削减大额支出或增加收入来源");
+    } else if (R < floor + 100){
+      mode = "extreme_tight";
+      alloc.meal = floor;
+      alloc.emg = R - floor;
+      warnings.push("极端紧预算：仅保三餐与少量应急，娱乐、储蓄、日常零碎归零");
+    } else if (R < floor * 1.25){
+      mode = "tight";
+      alloc.meal = floor;
+      alloc.daily = 50;
+      alloc.emg = Math.max(0, R - floor - 50);
+      warnings.push("紧预算模式：娱乐与储蓄归零，日常零碎压到 50 元");
+    } else {
+      mode = "normal";
+      var meal = round10(R * 0.52);
+      if (meal < floor){
+        meal = floor;
+        var rest = R - meal;
+        // 整数权重 10:18:12:8，避免浮点累加误差
+        var parts = {
+          daily: round10(rest * 10 / 48),
+          fun:   round10(rest * 18 / 48),
+          save:  round10(rest * 12 / 48)
+        };
+        var emg = rest - parts.daily - parts.fun - parts.save;
+        var emgMin = round10(R * 0.06);
+        if (emg < emgMin){
+          var mv = moveToEmg(parts, emg, emgMin);
+          parts = mv.parts; emg = mv.emg;
+          if (mv.left > 0) warnings.push("应急备用金仍低于可分配金额的 6%，其余板块已无可压缩空间");
+        }
+        warnings.push("按 52% 分配三餐不足三餐下限 " + floor + " 元，已按下限保护并压缩其余板块");
+        alloc = {meal:meal, daily:parts.daily, fun:parts.fun, save:parts.save, emg:emg};
+      } else {
+        var p2 = {
+          daily: round10(R * 0.10),
+          fun:   round10(R * 0.18),
+          save:  round10(R * 0.12)
+        };
+        var e2 = R - meal - p2.daily - p2.fun - p2.save;
+        var lo = round10(R * 0.06), hi = round10(R * 0.10);
+        if (e2 < lo){
+          var mv2 = moveToEmg(p2, e2, lo);
+          p2 = mv2.parts; e2 = mv2.emg;
+          if (mv2.left > 0) warnings.push("应急备用金仍低于可分配金额的 6%");
+        }
+        if (e2 > hi && hi > 0){ p2.save += e2 - hi; e2 = hi; }
+        alloc = {meal:meal, daily:p2.daily, fun:p2.fun, save:p2.save, emg:e2};
+      }
+    }
+
+    if (living > 0){
+      if (fixed + big > living * 0.7) triggers.push("固定开销+大额支出超过生活费 70%");
+      if (mode === "deficit" || mode === "meal_deficit" || mode === "extreme_tight" || mode === "tight")
+        triggers.push("三餐被压到下限或已进入紧预算模式");
+      if (mode === "normal" && R * 0.52 < floor) triggers.push("按 52% 分配三餐不足下限，实际挤压了吃饭");
+      if (alloc.save + alloc.emg < living * 0.1) triggers.push("储蓄+应急合计低于生活费 10%");
+    }
+
+    var total = alloc.meal + alloc.daily + alloc.fun + alloc.save + alloc.emg + fixed + big;
+    return {
+      mode: mode, season: season, seasonName: SEASON_NAME[season],
+      dorm: dorm, dormDetail: DORM_DETAIL[season], fixedExtra: fixedExtra, fixed: fixed,
+      big: big, R: R, floor: floor, alloc: alloc,
+      pct: {
+        meal: pct(alloc.meal, living), daily: pct(alloc.daily, living),
+        fun: pct(alloc.fun, living), save: pct(alloc.save, living),
+        emg: pct(alloc.emg, living), fixed: pct(fixed, living), big: pct(big, living)
+      },
+      total: total, balanced: total === living,
+      triggers: triggers, warnings: warnings,
+      trigger: triggers.length > 0
+    };
+  }
+
+  function pct(v, base){ return base > 0 ? Math.round(v * 1000 / base) / 10 : 0; }
+
+  /* =========================================================
+     素材库
+     ========================================================= */
+  var TIPS = [
+    ["食堂基础窗口", "比特色窗口每餐便宜 3–5 元，一个月能省 80–120 元。"],
+    ["校园二手", "教材、考研资料、小电器、手表都可以先看校园二手群和跳蚤市场。"],
+    ["舍友拼单", "日用品按箱买再分摊，单价能压到超市的六到七成。"],
+    ["免费资源", "图书馆自习位（顺带省宿舍电费）、学校正版软件与教育版优惠、学生影票和交通卡。"],
+    ["资金隔离", "三餐预算单独放一个余额；宿舍三费在小程序月初按定额一次充够，别 5 元一充。"]
+  ];
+
+  function buildWarns(res, big){
+    var list = [];
+    if (big > 0) list.push(["冲动网购", "「限时折扣」「最后 3 件」最容易让人下单，先放购物车三天再决定。"]);
+    list.push(["频繁外卖", "一餐 15–25 元，是食堂的两倍；每周多 3 次，一个月就多出约 200 元。"]);
+    list.push(["盲盒与抽卡", "单次金额小、频次高，月底对账最容易被忽略，建议设一个月度上限。"]);
+    if (res.alloc.fun > 0) list.push(["奶茶与聚餐", "单次 8–80 元，风险在频次不在单价，翻账单时先看次数。"]);
+    list.push(["线上支付无感", "微信/支付宝一笔就付，洗澡、洗衣、饮水又各是一个小程序，没有余额提醒；建议每周翻一次账单，月中统一查余额。"]);
+    return list.slice(0, 5);
+  }
+
+  /* =========================================================
+     渲染
+     ========================================================= */
+  var lastMarkdown = "";
+
+  function el(id){ return document.getElementById(id); }
+  function num(id){ var v = parseFloat(el(id).value); return isNaN(v) ? 0 : v; }
+
+  function money(n){ return n.toLocaleString("zh-CN"); }
+
+  function buildConclusion(res, bigName){
+    var a = res.alloc;
+    if (res.mode === "deficit")
+      return "扣除固定开销和大额支出后已经没有余额，这个月的方案不成立，需要先调整大额支出。";
+    if (res.mode === "meal_deficit")
+      return "可分配只有 " + money(res.R) + " 元，比三餐下限少 " + money(res.floor - res.R) +
+             " 元。先解决钱不够的问题：削减大额支出，或者增加收入来源。";
+    if (res.mode === "extreme_tight" || res.mode === "tight")
+      return "这个月只能保住吃饭，娱乐和储蓄暂时归零。三餐 " + money(a.meal) +
+             " 元已经是最低线，其他能省就省。";
+    var base = "这个月能存下 " + money(a.save) + " 元";
+    if (res.big > 0){
+      return base + "，但" + (bigName || "这笔大额支出") + "的 " + money(res.big) +
+             " 元是从娱乐、储蓄和日常里挤出来的。";
+    }
+    return base + "，应急留 " + money(a.emg) + " 元，按方案执行即可。";
+  }
+
+  function renderTable(res){
+    var rows = "";
+    if (res.fixedExtra > 0){
+      rows += '<tr><td>其他固定开销<span class="sub">话费 / 交通 / 校园网 / 订阅</span></td>' +
+              '<td class="r">' + money(res.fixedExtra) + '</td><td class="r">' + res.pct.fixed.toFixed(1) + '%</td></tr>';
+    }
+    if (res.dorm > 0){
+      var d = res.dormDetail.map(function(x){ return x[0] + " " + x[1]; }).join(" / ");
+      rows += '<tr><td>宿舍杂费<span class="sub">' + res.seasonName + "定额：" + d + '</span></td>' +
+              '<td class="r">' + money(res.dorm) + '</td><td class="r">' + res.pct.fixed.toFixed(1) + '%</td></tr>';
+    }
+    ["meal","daily","fun","save","emg"].forEach(function(k){
+      rows += '<tr><td>' + LABEL[k] + '</td><td class="r">' + money(res.alloc[k]) +
+              '</td><td class="r">' + res.pct[k].toFixed(1) + '%</td></tr>';
+    });
+    if (res.big > 0){
+      rows += '<tr class="big-row"><td>本月大额：' + (el("bigName").value || "大额支出") + '</td>' +
+              '<td class="r">' + money(res.big) + '</td><td class="r">' + res.pct.big.toFixed(1) + '%</td></tr>';
+    }
+    rows += '<tr class="sum"><td>合计</td><td class="r">' + money(res.total) +
+            '</td><td class="r">100.0%</td></tr>';
+    return '<table><thead><tr><th>项目</th><th class="r">每月金额</th><th class="r">占生活费</th></tr></thead>' +
+           '<tbody>' + rows + '</tbody></table>';
+  }
+
+  function deltaText(cur, base){
+    var names = {fun:"娱乐社交", daily:"日常零碎", save:"储蓄", emg:"应急备用金"};
+    var out = [];
+    ["fun","daily","save","emg"].forEach(function(k){
+      var d = base.alloc[k] - cur.alloc[k];
+      if (d > 0) out.push(names[k] + "减 " + d);
+    });
+    return out.length ? out.join("、") : "无需压缩其他板块";
+  }
+
+  function renderPlans(res, living, fixedExtra, big, month, days, dormOn, bigName){
+    if (big <= 0){
+      return '<div class="plan"><div class="body">本月没有大额支出，不需要取舍方案，按上面的分配执行即可。</div></div>';
+    }
+    var noBig = allocate(living, fixedExtra, 0, month, days, dormOn);
+    var half = round10(big * 0.5);
+    var reduced = half >= 10 ? allocate(living, fixedExtra, half, month, days, dormOn) : null;
+
+    var html = "";
+    // 方案 A：照买
+    html += '<div class="plan">' +
+      '<div class="head"><span class="name">A · 照买' + (bigName ? "（" + bigName + " " + money(big) + " 元）" : "") + '</span>' +
+      '<span class="tag">当前方案</span></div>' +
+      '<div class="body">从其他板块凑出这笔钱：' + deltaText(res, noBig) + '。</div>' +
+      '<div class="cost">代价：娱乐基本见底，储蓄和应急都被压薄，本月不能有额外意外支出。</div>' +
+      '<div class="nums">娱乐 ' + money(res.alloc.fun) + '｜储蓄 ' + money(res.alloc.save) + '｜应急 ' + money(res.alloc.emg) + '</div>' +
+      '</div>';
+
+    // 方案 B：推迟
+    html += '<div class="plan">' +
+      '<div class="head"><span class="name">B · 推迟到下个月</span><span class="tag alt">最稳</span></div>' +
+      '<div class="body">本月不买：三餐 ' + money(noBig.alloc.meal) + '，娱乐 ' + money(noBig.alloc.fun) +
+      '，储蓄 ' + money(noBig.alloc.save) + '，应急 ' + money(noBig.alloc.emg) + '。</div>' +
+      '<div class="cost">代价：晚一个月拿到；换来本月不用绷紧，储蓄能多存 ' +
+      money(noBig.alloc.save - res.alloc.save) + ' 元。</div>' +
+      '<div class="nums">娱乐 ' + money(noBig.alloc.fun) + '｜储蓄 ' + money(noBig.alloc.save) + '｜应急 ' + money(noBig.alloc.emg) + '</div>' +
+      '</div>';
+
+    // 方案 C：降配
+    if (reduced){
+      html += '<div class="plan">' +
+        '<div class="head"><span class="name">C · 降配到 ' + money(half) + ' 元</span><span class="tag alt">折中</span></div>' +
+        '<div class="body">买二手或基础款：越 ' + money(half) + ' 元，' +
+        deltaText(reduced, noBig) + '。</div>' +
+        '<div class="cost">代价：功能上要取舍（防水、精度之类）；好处是吃饭和储蓄几乎不受影响。</div>' +
+        '<div class="nums">娱乐 ' + money(reduced.alloc.fun) + '｜储蓄 ' + money(reduced.alloc.save) + '｜应急 ' + money(reduced.alloc.emg) + '</div>' +
+        '</div>';
+    }
+    return html;
+  }
+
+  function buildMarkdown(res, bigName){
+    var a = res.alloc, md = "";
+    md += "## 月度生活费分配方案（生活费 " + money(res.total) + " 元）\n\n";
+    md += "| 项目 | 每月金额 | 占生活费 |\n|---|---|---|\n";
+    if (res.fixedExtra > 0) md += "| 其他固定开销 | " + res.fixedExtra + " | " + res.pct.fixed.toFixed(1) + "% |\n";
+    if (res.dorm > 0) md += "| 宿舍杂费 | " + res.dorm + " | " + res.pct.fixed.toFixed(1) + "% |\n";
+    ["meal","daily","fun","save","emg"].forEach(function(k){
+      md += "| " + LABEL[k] + " | " + a[k] + " | " + res.pct[k].toFixed(1) + "% |\n";
+    });
+    if (res.big > 0) md += "| 本月大额：" + (bigName || "大额支出") + " | " + res.big + " | " + res.pct.big.toFixed(1) + "% |\n";
+    md += "\n合计 " + res.total + " 元。\n";
+    return md;
+  }
+
+  function render(){
+    var living = Math.round(num("living"));
+    var fixedExtra = Math.round(num("phone") + num("traffic") + num("net") + num("sub"));
+    var big = Math.round(num("big"));
+    var month = parseInt(el("month").value, 10) || 1;
+    var days = parseInt(el("days").value, 10) || 28;
+    var dormOn = el("dormOn").checked;
+    var bigName = el("bigName").value.trim();
+
+    var out = el("result");
+    if (!living || living <= 0){
+      out.innerHTML = '<div class="empty">先填写每月生活费，再点「生成方案」。</div>';
+      return;
+    }
+
+    var res = allocate(living, fixedExtra, big, month, days, dormOn);
+    lastMarkdown = buildMarkdown(res, bigName);
+
+    var a = res.alloc;
+    var html = "";
+
+    html += '<div class="conclusion"><div class="txt"><span class="k">本月结论</span>' +
+            buildConclusion(res, bigName) + '</div>' +
+            '<div class="acts"><button class="copy-btn" id="copyBtn">复制</button>' +
+            '<button class="copy-btn" id="printBtn">打印</button></div></div>';
+
+    // 1
+    html += '<div class="card"><h3><span class="num">1</span>月度生活费分配方案</h3>' +
+      '<div class="kpis">' +
+      '<div class="kpi hero-kpi"><div class="l">三餐伙食</div><div class="v">' + money(a.meal) + '</div></div>' +
+      '<div class="kpi"><div class="l">日常零碎</div><div class="v">' + money(a.daily) + '</div></div>' +
+      '<div class="kpi"><div class="l">娱乐社交</div><div class="v">' + money(a.fun) + '</div></div>' +
+      '<div class="kpi"><div class="l">储蓄</div><div class="v">' + money(a.save) + '</div></div>' +
+      '<div class="kpi"><div class="l">应急备用金</div><div class="v">' + money(a.emg) + '</div></div>' +
+      '</div>' +
+      '<ul class="tips">' +
+      '<li><b>三餐 ' + money(a.meal) + ' 元</b>：按 ' + days + ' 天、每天约 ' + (a.meal / days).toFixed(1) +
+      ' 元算，' + (a.meal <= res.floor ? "已经压到 30 元/天的下限，不能再低。" : "食堂早餐 6 元、午晚餐各 12–13 元就能吃饱。") + '</li>' +
+      '<li><b>日常零碎 ' + money(a.daily) + ' 元</b>：洗漱、纸巾、文具、打印，不含宿舍水电（已在固定开销里）。</li>' +
+      '<li><b>娱乐社交 ' + money(a.fun) + ' 元</b>：' +
+      (a.fun >= 150 ? "约合每月 2 次小聚，或每周一两杯奶茶。" : "只够一次简单聚餐或几杯奶茶，本月要先紧着别的。") + '</li>' +
+      '<li><b>储蓄 ' + money(a.save) + ' 元</b>：现金或活期，月初转出去就不动，不谈收益。</li>' +
+      '<li><b>应急备用金 ' + money(a.emg) + ' 元</b>：买药、餐饮超支补位、临时充水电气，占可分配剩余的 ' +
+      (res.R > 0 ? (a.emg * 100 / res.R).toFixed(1) : "0") + '%。</li>' +
+      '</ul></div>';
+
+    // 2
+    html += '<div class="card"><h3><span class="num">2</span>预算明细表</h3>' + renderTable(res) +
+      '<div class="note">占比四舍五入保留一位小数，合计按 100% 计；金额四舍五入到 10 元，五项之和与生活费相等。</div></div>';
+
+    // 3
+    html += '<div class="card"><h3><span class="num">3</span>大额支出调整方案</h3>';
+    if (res.trigger && big > 0){
+      html += '<div class="note warn-note">已触发：' + res.triggers.join("；") +
+              '。请先确认取舍方向，再决定要不要下单。</div>';
+    }
+    html += renderPlans(res, living, fixedExtra, big, month, days, dormOn, bigName) + '</div>';
+
+    // 4
+    html += '<div class="card"><h3><span class="num">4</span>校园省钱建议</h3><ul class="tips">' +
+      TIPS.map(function(t){ return "<li><b>" + t[0] + "</b>：" + t[1] + "</li>"; }).join("") +
+      '</ul></div>';
+
+    // 5
+    html += '<div class="card"><h3><span class="num">5</span>消费避雷提醒</h3><div class="warn-box">' +
+      '<ul class="tips warns">' +
+      buildWarns(res, big).map(function(t){ return "<li><b>" + t[0] + "</b>：" + t[1] + "</li>"; }).join("") +
+      '</ul></div></div>';
+
+    // 提示
+    if (res.warnings.length){
+      html += '<div class="note warn-note tail-note">' + res.warnings.join("<br>") + '</div>';
+    }
+
+    out.innerHTML = html;
+
+    var btn = el("copyBtn");
+    if (btn){
+      btn.addEventListener("click", function(){
+        var text = buildConclusion(res, bigName) + "\n\n" + lastMarkdown;
+        copyText(text, btn);
+      });
+    }
+    var pbtn = el("printBtn");
+    if (pbtn){
+      pbtn.addEventListener("click", function(){ window.print(); });
+    }
+  }
+
+  function copyText(text, btn){
+    var done = function(){
+      var old = btn.textContent;
+      btn.textContent = "已复制";
+      setTimeout(function(){ btn.textContent = old; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(function(){ fallback(text, done); });
+    } else {
+      fallback(text, done);
+    }
+  }
+
+  function fallback(text, done){
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); } catch(e){}
+    document.body.removeChild(ta);
+  }
+
+  /* =========================================================
+     初始化
+     ========================================================= */
+  function initMonths(){
+    var sel = el("month"), now = new Date().getMonth() + 1;
+    for (var m = 1; m <= 12; m++){
+      var opt = document.createElement("option");
+      opt.value = m; opt.textContent = m + " 月";
+      if (m === now) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+
+  function updateDormHint(){
+    var m = parseInt(el("month").value, 10) || 1;
+    var s = SEASON[m], fee = DORM_FEE[s];
+    var detail = DORM_DETAIL[s].map(function(x){ return x[0] + " " + x[1]; }).join(" / ");
+    el("dormHint").textContent = "宿舍杂费：" + SEASON_NAME[s] + "按 " + fee + " 元/月计（" + detail + "）";
+    el("dormOn").disabled = false;
+  }
+
+  function bind(){
+    el("go").addEventListener("click", render);
+    el("month").addEventListener("change", function(){ updateDormHint(); render(); });
+    ["living","days","phone","traffic","net","sub","big","bigName","dormOn"].forEach(function(id){
+      el(id).addEventListener("input", render);
+      el(id).addEventListener("change", render);
+    });
+  }
+
+  initMonths();
+  updateDormHint();
+  bind();
+  render();
+})();
+</script>
+</body>
+</html>
