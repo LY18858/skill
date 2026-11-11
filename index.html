@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>生活费规划助手</title>
+<meta name="description" content="大学生生活费事前预算规划：Agent Skill + 零依赖网页版，五板块分配、大额支出取舍、省钱建议与避雷提醒。">
+<style>
+  :root{
+    --bg:#f4f6f2; --ink:#151b18; --muted:#68736d; --line:#e3e7e1;
+    --accent:#0d7a70; --accent-2:#13a08f; --accent-soft:#e7f4f1;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    min-height:100vh;display:grid;place-items:center;padding:32px 20px;
+    background:var(--bg);color:var(--ink);
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:560px;width:100%;text-align:center;position:relative}
+  .wrap::before{
+    content:"";position:absolute;top:-40px;left:50%;transform:translateX(-50%);
+    width:120px;height:3px;border-radius:3px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;font-size:12px;letter-spacing:.08em;
+    color:var(--accent);background:var(--accent-soft);padding:5px 12px;border-radius:100px;
+    font-weight:600;margin-bottom:18px;
+  }
+  .badge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent-2)}
+  h1{font-size:clamp(26px,5vw,36px);letter-spacing:-.02em;line-height:1.25;font-weight:700}
+  p.desc{color:var(--muted);font-size:15px;margin-top:12px}
+  .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px}
+  a{
+    display:inline-block;padding:12px 26px;border-radius:12px;font-size:15px;
+    font-weight:600;text-decoration:none;transition:transform .16s,filter .16s;
+  }
+  a.primary{
+    background:var(--accent);color:#fff;
+    box-shadow:0 4px 14px rgba(13,122,112,.24);
+  }
+  a.primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  a.ghost{border:1px solid var(--line);color:#3d4742;background:#fff}
+  a.ghost:hover{border-color:#cfd6d0;transform:translateY(-1px)}
+  .tip{font-size:12px;color:#9aa49e;margin-top:22px}
+  .tip span{color:var(--accent)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="badge">校园预算工具</div>
+  <h1>生活费规划助手</h1>
+  <p class="desc">
+    给在校大学生做<strong>事前</strong>预算规划：五板块分配、大额支出取舍、校园省钱建议与消费避雷。
+    不是记账工具。
+  </p>
+  <div class="actions">
+    <a class="primary" href="college-budget-planner/web/index.html">进入网页版</a>
+    <a class="ghost" href="https://github.com/LY18858/skill">查看源码</a>
+  </div>
+  <p class="tip"><span id="cd">2</span> 秒后自动进入网页版</p>
+</main>
+<script>
+(function(){
+  var n = 2, box = document.getElementById("cd");
+  var t = setInterval(function(){
+    n -= 1;
+    if (n <= 0){ clearInterval(t); location.replace("college-budget-planner/web/index.html"); return; }
+    box.textContent = n;
+  }, 1000);
+})();
+</script>
+</body>
+</html>

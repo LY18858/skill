@@ -4,6 +4,10 @@
 
 ![网页版预览](college-budget-planner/web/preview.png)
 
+手机端自适应效果：
+
+<img src="college-budget-planner/web/preview-mobile.png" width="300" alt="移动端预览">
+
 ## 三种形态，按场景选
 
 | 形态 | 路径 | 适合谁 |
