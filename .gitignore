@@ -24,3 +24,6 @@ shots/
 # 本地推送密钥，禁止提交
 .gitkey
 .gitkey.pub
+
+# 打包产物
+dist/

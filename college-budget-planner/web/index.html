@@ -255,6 +255,12 @@
   .bar{width:112px;height:9px;border-radius:5px;background:#e6e0d3;overflow:hidden;flex:none}
   .bar i{display:block;height:100%;border-radius:4px}
   @media (max-width:700px){
+    .card-head{flex-wrap:wrap;row-gap:7px;padding:18px 18px 0;gap:8px}
+    .card-head h2{white-space:nowrap;flex:0 0 auto;font-size:16.5px}
+    .card-head .meta{display:none}
+    .kind{flex:0 0 auto;font-size:10px;padding:2px 7px}
+    .fold{margin-left:auto;flex:0 0 auto;padding:4px 10px;font-size:11.5px}
+    .card.collapsed .card-head{padding-bottom:16px}
     th,td{padding:13px 8px;font-size:13.5px}
     .bar{display:none}
     .pc-cell .num{min-width:auto;font-size:14.5px}
@@ -1182,13 +1188,15 @@
 
     /* 02 明细表 */
     var balanceCls = res.balanced ? "balance" : "balance bad";
+    var restSum = res.fixed + res.big;
     var balanceTxt = res.balanced
-      ? "五项分配合计 <b>" + money(res.total) + " 元</b>，与生活费相等，闭合校验通过。"
-      : "五项分配合计 <b>" + money(res.total) + " 元</b>，与生活费不一致，请检查输入。";
+      ? "五板块 <b>" + money(res.R) + " 元</b> + 固定与大额 <b>" + money(restSum) + " 元</b> = 生活费 <b>" +
+        money(res.total) + " 元</b>，闭合校验通过。"
+      : "五板块 <b>" + money(res.R) + " 元</b> + 固定与大额 <b>" + money(restSum) + " 元</b>，合计与生活费不一致，请检查输入。";
     html += '<div class="card' + (folded.detail ? " collapsed" : "") + '">' +
       cardHead("02", "预算明细", "data", "本月数据", "金额取整至 10 元", "detail") + '<div class="card-body">' + tableRows(res, bigName) +
       '<div class="' + balanceCls + '"><span>✓</span><div>' + balanceTxt + '</div></div>' +
-      '<div class="tip-line"><span class="i">i</span><div>占比按生活费计算，四舍五入保留一位小数；各项金额由模型统一计算，可逐项复核。</div></div>' +
+      '<div class="tip-line"><span class="i">i</span><div>金额一律取整至 10 元；占比按生活费计算，保留一位小数；各项均可逐项复核。</div></div>' +
       '</div></div>';
 
     /* 03 大额取舍 */
