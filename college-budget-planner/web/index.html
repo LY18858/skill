@@ -685,7 +685,7 @@
 </div>
 
 <footer>
-  <b>计算口径</b>：三餐 52%、日常零碎 10%、娱乐社交 18%、储蓄 12%、应急备用金 8%，比例作用于扣除固定开销与大额支出后的可分配金额。三餐保障线为在校天数 × 30 元；应急备用金由尾差兜底，并校验在可分配金额的 6%–10% 区间。<br>
+  <b>计算口径</b>：三餐 52%、日常零碎 10%、娱乐社交 18%、储蓄 12%、应急备用金 8%，比例作用于扣除固定开销与大额支出后的可分配金额。三餐保障线为在校天数 × 30 元；应急备用金由尾差兜底，正常模式下控制在可分配金额的 6%–10%，预算极紧时优先保三餐。<br>
   <b>数据来源</b>：物价参考长沙高校常见水平；宿舍杂费按空调季（6–9 月、12–2 月）与过渡季自动切换。<br>
   <b>使用边界</b>：本工具仅提供月度预算规划，不涉及记账、借贷与理财建议。页面插画为原创矢量绘制，无外部素材依赖。
 </footer>
@@ -711,6 +711,7 @@
   var ORDER = ["meal","daily","fun","save","emg"];
 
   function round10(x){ return Math.floor(x/10 + 0.5 + 1e-9) * 10; }
+  function ceil10(x){ return Math.ceil(x/10 - 1e-9) * 10; }
 
   function moveToEmg(parts, emg, target){
     var need = target - emg;
@@ -762,7 +763,7 @@
           save:  round10(rest * 12 / 48)
         };
         var emg = rest - parts.daily - parts.fun - parts.save;
-        var emgMin = round10(R * 0.06);
+        var emgMin = ceil10(R * 0.06);
         if (emg < emgMin){
           var mv = moveToEmg(parts, emg, emgMin);
           parts = mv.parts; emg = mv.emg;
@@ -775,7 +776,7 @@
           save:  round10(R * 0.12)
         };
         var e2 = R - meal - p2.daily - p2.fun - p2.save;
-        var lo = round10(R * 0.06), hi = round10(R * 0.10);
+        var lo = ceil10(R * 0.06), hi = round10(R * 0.10);
         if (e2 < lo){
           var mv2 = moveToEmg(p2, e2, lo);
           p2 = mv2.parts; e2 = mv2.emg;
@@ -1097,6 +1098,16 @@
     return "按在校 " + days + " 天计，日均 " + daily + " 元，可覆盖食堂常规三餐支出。";
   }
 
+  function emgNote(res){
+    if (res.alloc.emg <= 0)
+      return "本月未分配应急备用金，突发支出风险敞口较大，建议至少保留 50 元。";
+    var p = res.R > 0 ? (res.alloc.emg * 100 / res.R).toFixed(1) : "0";
+    if (res.mode === "normal")
+      return "用于购药、临时补缴水电等不可预见支出，占可分配金额 " + p + "%，处于 6%–10% 的常规区间。";
+    return "用于购药、临时补缴水电等不可预见支出，占可分配金额 " + p +
+           "%；预算紧张时优先保障三餐，该比例可低于常规区间。";
+  }
+
   function funNote(v){
     if (v <= 0) return "本月预算紧张，该项暂不分配，社交支出建议以校内免费活动替代。";
     var hi = Math.max(1, Math.round(v / 60));
@@ -1181,18 +1192,18 @@
       '<li><b>储蓄 ' + money(res.alloc.save) + ' 元</b>：' + (res.alloc.save > 0
         ? '月初单独划出，当月不使用，用于长期积累与大额支出储备。'
         : '本月无储蓄额度，预算恢复后建议优先补足，避免长期零积累。') + '</li>' +
-      '<li><b>应急备用金 ' + money(res.alloc.emg) + ' 元</b>：' + (res.alloc.emg > 0
-        ? '用于购药、临时补缴水电等不可预见支出，占可分配金额 ' + (res.R > 0 ? (res.alloc.emg * 100 / res.R).toFixed(1) : "0") + '%。'
-        : '本月未分配应急备用金，突发支出风险敞口较大，建议至少保留 50 元。') + '</li>' +
+      '<li><b>应急备用金 ' + money(res.alloc.emg) + ' 元</b>：' + emgNote(res) + '</li>' +
       '</ul></div></div>';
 
     /* 02 明细表 */
     var balanceCls = res.balanced ? "balance" : "balance bad";
     var restSum = res.fixed + res.big;
-    var balanceTxt = res.balanced
-      ? "五板块 <b>" + money(res.R) + " 元</b> + 固定与大额 <b>" + money(restSum) + " 元</b> = 生活费 <b>" +
-        money(res.total) + " 元</b>，闭合校验通过。"
-      : "五板块 <b>" + money(res.R) + " 元</b> + 固定与大额 <b>" + money(restSum) + " 元</b>，合计与生活费不一致，请检查输入。";
+    var balanceTxt = res.R <= 0
+      ? "可分配剩余 <b>" + money(res.R) + " 元</b>，本月方案不可行，请先削减大额支出或补充收入。"
+      : (res.balanced
+        ? "五板块 <b>" + money(res.R) + " 元</b> + 固定与大额 <b>" + money(restSum) + " 元</b> = 生活费 <b>" +
+          money(res.total) + " 元</b>，闭合校验通过。"
+        : "五板块 <b>" + money(res.R) + " 元</b> + 固定与大额 <b>" + money(restSum) + " 元</b>，合计与生活费不一致，请检查输入。");
     html += '<div class="card' + (folded.detail ? " collapsed" : "") + '">' +
       cardHead("02", "预算明细", "data", "本月数据", "金额取整至 10 元", "detail") + '<div class="card-body">' + tableRows(res, bigName) +
       '<div class="' + balanceCls + '"><span>✓</span><div>' + balanceTxt + '</div></div>' +

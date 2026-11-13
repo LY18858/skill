@@ -5,10 +5,23 @@ import sys
 
 from playwright.sync_api import sync_playwright
 
-BASE = "http://localhost:8765/college-budget-planner/web/index.html"
-SKILL = "/workspace/college-budget-planner/scripts/budget_calc.py"
+ROOT = os.path.dirname(os.path.abspath(__file__))
+def locate():
+    for html_rel, scripts_rel in [
+        ("college-budget-planner/web/index.html", "college-budget-planner/scripts"),
+        ("01_网页版/index.html", "02_Skill版/scripts"),
+    ]:
+        html = os.path.join(ROOT, html_rel)
+        scripts = os.path.join(ROOT, scripts_rel)
+        if os.path.isfile(html) and os.path.isdir(scripts):
+            return html_rel, os.path.join(scripts, "budget_calc.py")
+    raise SystemExit("未找到网页或脚本目录")
+
+
+WEB_REL, SKILL = locate()
+BASE = "http://localhost:8765/" + WEB_REL
 CHROME = "/root/.cache/ms-playwright/chromium-1243/chrome-linux/chrome"
-SHOT = "/workspace/shots"
+SHOT = os.path.join(ROOT, "shots")
 
 CASES = [
     dict(tag="1500/手表200/11月", living=1500, phone=0, traffic=0, net=0, sub=0,

@@ -1,10 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """针对本轮评审项的浏览器行为验证：XSS、flash 副作用、占比闭合、chips、深色、aria。"""
+import os
 import sys
 from playwright.sync_api import sync_playwright
 
-BASE = "http://localhost:8765/college-budget-planner/web/index.html"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _web_rel():
+    for rel in ("college-budget-planner/web/index.html", "01_网页版/index.html"):
+        if os.path.isfile(os.path.join(ROOT, rel)):
+            return rel
+    raise SystemExit("未找到网页目录")
+
+
+BASE = "http://localhost:8765/" + _web_rel()
 CHROME = "/root/.cache/ms-playwright/chromium-1243/chrome-linux/chrome"
 PAYLOAD = '<img src=x onerror="window.__xss=1">'
 results = []

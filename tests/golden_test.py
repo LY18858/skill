@@ -19,8 +19,24 @@ import sys
 import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-HTML = os.path.join(ROOT, "college-budget-planner", "web", "index.html")
-sys.path.insert(0, os.path.join(ROOT, "college-budget-planner", "scripts"))
+LAYOUTS = [
+    ("college-budget-planner/web/index.html", "college-budget-planner/scripts"),
+    ("01_网页版/index.html", "02_Skill版/scripts"),
+]
+
+
+def locate():
+    """兼容仓库结构与参赛包结构。"""
+    for html_rel, scripts_rel in LAYOUTS:
+        html = os.path.join(ROOT, html_rel)
+        scripts = os.path.join(ROOT, scripts_rel)
+        if os.path.isfile(html) and os.path.isdir(scripts):
+            return html, scripts
+    raise SystemExit("未找到网页或脚本目录，请在仓库根或参赛包根目录运行")
+
+
+HTML, SCRIPTS = locate()
+sys.path.insert(0, SCRIPTS)
 from budget_calc import allocate as py_allocate  # noqa: E402
 
 KERNEL_RE = re.compile(r"/\*KERNEL-BEGIN\*/(.*?)/\*KERNEL-END\*/", re.S)

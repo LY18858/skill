@@ -10,6 +10,7 @@
 """
 import argparse
 import json
+import math
 import sys
 
 # 月份 -> 季节：6-9 月制冷、12-2 月取暖为空调季，其余过渡季
@@ -31,6 +32,11 @@ LABELS = {"meal": "三餐伙食", "daily": "日常零碎", "fun": "娱乐社交"
 def round10(x):
     """四舍五入到 10 元，避开 Python 银行家舍入。"""
     return int(x / 10.0 + 0.5 + 1e-9) * 10
+
+
+def ceil10(x):
+    """向上取整到 10 元。下限必须向上取整，否则四舍五入会把 6% 压到 5.9%。"""
+    return int(math.ceil(x / 10.0 - 1e-9)) * 10
 
 
 def _move_to_emg(parts, emg, target):
@@ -90,7 +96,7 @@ def allocate(living, fixed_extra, big, month, days, dorm_on=True):
                 "save": round10(rest * 12 / 48),
             }
             emg = rest - parts["daily"] - parts["fun"] - parts["save"]
-            emg_min = round10(remaining * 0.06)
+            emg_min = ceil10(remaining * 0.06)
             if emg < emg_min:
                 parts, emg, left = _move_to_emg(parts, emg, emg_min)
                 if left > 0:
@@ -104,7 +110,7 @@ def allocate(living, fixed_extra, big, month, days, dorm_on=True):
             save = round10(remaining * RATIO["save"])
             emg = remaining - meal - daily - fun - save
             parts = {"daily": daily, "fun": fun, "save": save}
-            emg_min = round10(remaining * 0.06)
+            emg_min = ceil10(remaining * 0.06)
             emg_max = round10(remaining * 0.10)
             if emg < emg_min:
                 parts, emg, left = _move_to_emg(parts, emg, emg_min)
